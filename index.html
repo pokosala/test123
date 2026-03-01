@@ -1,523 +1,42 @@
 
 <!DOCTYPE html>
-<html lang="ru">
+<html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Форум - Анонимное общение</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-        }
-
-        body {
-            background: var(--tg-theme-bg-color, #0a0c10);
-            color: var(--tg-theme-text-color, #e4e6eb);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .header {
-            background: var(--tg-theme-secondary-bg-color, #16181c);
-            padding: 16px;
-            text-align: center;
-            border-bottom: 1px solid var(--tg-theme-hint-color, #2a2f35);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .header h1 {
-            font-size: 22px;
-            font-weight: 600;
-            margin-bottom: 4px;
-            color: var(--tg-theme-button-color, #2b6bff);
-        }
-
-        .header p {
-            font-size: 14px;
-            color: var(--tg-theme-hint-color, #8e8e93);
-        }
-
-        .nav {
-            display: flex;
-            background: var(--tg-theme-secondary-bg-color, #16181c);
-            padding: 8px;
-            gap: 8px;
-            overflow-x: auto;
-            scrollbar-width: none;
-            border-bottom: 1px solid var(--tg-theme-hint-color, #2a2f35);
-        }
-
-        .nav::-webkit-scrollbar {
-            display: none;
-        }
-
-        .nav-item {
-            padding: 8px 16px;
-            background: var(--tg-theme-bg-color, #0a0c10);
-            border: 1px solid var(--tg-theme-hint-color, #2a2f35);
-            border-radius: 20px;
-            font-size: 14px;
-            color: var(--tg-theme-text-color, #e4e6eb);
-            cursor: pointer;
-            white-space: nowrap;
-            transition: all 0.2s;
-        }
-
-        .nav-item.active {
-            background: var(--tg-theme-button-color, #2b6bff);
-            color: var(--tg-theme-button-text-color, #ffffff);
-            border-color: var(--tg-theme-button-color, #2b6bff);
-        }
-
-        .nav-item.random {
-            background: #8e44ad;
-            border-color: #9b59b6;
-            color: white;
-        }
-
-        .main {
-            flex: 1;
-            padding: 16px;
-            overflow-y: auto;
-        }
-
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
-            margin-bottom: 20px;
-        }
-
-        .stat-card {
-            background: var(--tg-theme-secondary-bg-color, #16181c);
-            border-radius: 16px;
-            padding: 12px;
-            text-align: center;
-            border: 1px solid var(--tg-theme-hint-color, #2a2f35);
-        }
-
-        .stat-value {
-            font-size: 24px;
-            font-weight: bold;
-            color: var(--tg-theme-button-color, #2b6bff);
-        }
-
-        .stat-label {
-            font-size: 12px;
-            color: var(--tg-theme-hint-color, #8e8e93);
-        }
-
-        .categories-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 8px;
-            margin-bottom: 20px;
-        }
-
-        .category-card {
-            background: var(--tg-theme-secondary-bg-color, #16181c);
-            border-radius: 16px;
-            padding: 12px;
-            text-align: center;
-            cursor: pointer;
-            border: 1px solid var(--tg-theme-hint-color, #2a2f35);
-            transition: transform 0.2s;
-        }
-
-        .category-card:hover {
-            transform: scale(1.05);
-        }
-
-        .category-icon {
-            font-size: 24px;
-            margin-bottom: 4px;
-        }
-
-        .category-name {
-            font-size: 12px;
-            font-weight: 500;
-        }
-
-        .section-title {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin: 20px 0 12px 0;
-        }
-
-        .section-title h2 {
-            font-size: 18px;
-            font-weight: 600;
-        }
-
-        .rooms-list {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .room-card {
-            background: var(--tg-theme-secondary-bg-color, #16181c);
-            border-radius: 16px;
-            padding: 16px;
-            border: 1px solid var(--tg-theme-hint-color, #2a2f35);
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .room-card:hover {
-            background: #1e2228;
-        }
-
-        .room-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-        }
-
-        .room-name {
-            font-size: 16px;
-            font-weight: 600;
-        }
-
-        .room-category {
-            font-size: 12px;
-            color: var(--tg-theme-hint-color, #8e8e93);
-        }
-
-        .room-description {
-            font-size: 14px;
-            color: var(--tg-theme-hint-color, #8e8e93);
-            margin-bottom: 12px;
-        }
-
-        .room-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 12px;
-        }
-
-        .room-users {
-            background: var(--tg-theme-bg-color, #0a0c10);
-            padding: 4px 8px;
-            border-radius: 12px;
-            color: var(--tg-theme-button-color, #2b6bff);
-        }
-
-        .full-badge {
-            background: #e74c3c;
-            color: white;
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 10px;
-        }
-
-        .create-form {
-            background: var(--tg-theme-secondary-bg-color, #16181c);
-            border-radius: 16px;
-            padding: 20px;
-            border: 1px solid var(--tg-theme-hint-color, #2a2f35);
-        }
-
-        .form-group {
-            margin-bottom: 16px;
-        }
-
-        .form-label {
-            display: block;
-            margin-bottom: 8px;
-            font-size: 14px;
-            color: var(--tg-theme-hint-color, #8e8e93);
-        }
-
-        .form-input, .form-textarea, .form-select {
-            width: 100%;
-            padding: 12px;
-            background: var(--tg-theme-bg-color, #0a0c10);
-            border: 1px solid var(--tg-theme-hint-color, #2a2f35);
-            border-radius: 12px;
-            color: var(--tg-theme-text-color, #e4e6eb);
-            font-size: 14px;
-        }
-
-        .form-textarea {
-            min-height: 80px;
-            resize: vertical;
-        }
-
-        .limit-buttons {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
-        }
-
-        .limit-btn {
-            padding: 12px;
-            background: var(--tg-theme-bg-color, #0a0c10);
-            border: 1px solid var(--tg-theme-hint-color, #2a2f35);
-            border-radius: 12px;
-            color: var(--tg-theme-text-color, #e4e6eb);
-            font-size: 14px;
-            cursor: pointer;
-            text-align: center;
-        }
-
-        .limit-btn.selected {
-            background: var(--tg-theme-button-color, #2b6bff);
-            color: white;
-            border-color: var(--tg-theme-button-color, #2b6bff);
-        }
-
-        .submit-btn {
-            width: 100%;
-            padding: 16px;
-            background: var(--tg-theme-button-color, #2b6bff);
-            color: white;
-            border: none;
-            border-radius: 16px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            margin-top: 20px;
-        }
-
-        .chat-container {
-            background: var(--tg-theme-secondary-bg-color, #16181c);
-            border-radius: 16px;
-            padding: 16px;
-            min-height: 400px;
-            margin-bottom: 16px;
-            border: 1px solid var(--tg-theme-hint-color, #2a2f35);
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .message {
-            padding: 12px;
-            background: var(--tg-theme-bg-color, #0a0c10);
-            border-radius: 16px;
-            max-width: 80%;
-            border: 1px solid var(--tg-theme-hint-color, #2a2f35);
-            align-self: flex-start;
-        }
-
-        .message.own {
-            margin-left: auto;
-            background: var(--tg-theme-button-color, #2b6bff);
-            color: white;
-            border: none;
-            align-self: flex-end;
-        }
-
-        .message.system {
-            background: transparent;
-            border: none;
-            text-align: center;
-            color: var(--tg-theme-hint-color, #8e8e93);
-            font-style: italic;
-            max-width: 100%;
-        }
-
-        .message-header {
-            font-size: 12px;
-            color: var(--tg-theme-hint-color, #8e8e93);
-            margin-bottom: 4px;
-        }
-
-        .message.own .message-header {
-            color: rgba(255, 255, 255, 0.7);
-        }
-
-        .chat-input-area {
-            display: flex;
-            gap: 8px;
-            position: sticky;
-            bottom: 0;
-            background: var(--tg-theme-bg-color, #0a0c10);
-            padding: 12px;
-            border-top: 1px solid var(--tg-theme-hint-color, #2a2f35);
-        }
-
-        .chat-input {
-            flex: 1;
-            background: var(--tg-theme-secondary-bg-color, #16181c);
-            color: var(--tg-theme-text-color, #e4e6eb);
-            border: 1px solid var(--tg-theme-hint-color, #2a2f35);
-            border-radius: 24px;
-            padding: 12px 16px;
-            font-size: 14px;
-        }
-
-        .chat-send {
-            background: var(--tg-theme-button-color, #2b6bff);
-            color: white;
-            border: none;
-            border-radius: 24px;
-            padding: 12px 24px;
-            font-size: 14px;
-            cursor: pointer;
-        }
-
-        .chat-gpt {
-            background: #8e44ad;
-            color: white;
-            border: none;
-            border-radius: 24px;
-            padding: 12px 16px;
-            font-size: 14px;
-            cursor: pointer;
-        }
-
-        .back-button {
-            margin-bottom: 16px;
-        }
-
-        .back-btn {
-            background: var(--tg-theme-secondary-bg-color, #16181c);
-            border: 1px solid var(--tg-theme-hint-color, #2a2f35);
-            border-radius: 12px;
-            padding: 8px 16px;
-            color: var(--tg-theme-text-color, #e4e6eb);
-            cursor: pointer;
-            font-size: 14px;
-        }
-
-        .hidden {
-            display: none;
-        }
+        body { font-family: system-ui; margin: 0; padding: 16px; background: #0a0c10; color: white; }
+        .room { background: #16181c; padding: 16px; border-radius: 12px; margin-bottom: 12px; cursor: pointer; }
+        .room:hover { background: #1e2228; }
+        .chat { display: flex; flex-direction: column; height: 80vh; }
+        .messages { flex: 1; overflow-y: auto; padding: 16px; background: #16181c; border-radius: 12px; margin-bottom: 12px; }
+        .message { margin-bottom: 8px; padding: 8px 12px; background: #0a0c10; border-radius: 8px; max-width: 80%; }
+        .message.own { margin-left: auto; background: #2b6bff; }
+        .input-area { display: flex; gap: 8px; }
+        input { flex: 1; padding: 12px; background: #16181c; border: none; border-radius: 8px; color: white; }
+        button { padding: 12px 20px; background: #2b6bff; border: none; border-radius: 8px; color: white; cursor: pointer; }
+        .back { background: #8e44ad; }
+        .hidden { display: none; }
+        h2 { margin-top: 0; }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>🤖 Форум</h1>
-        <p>Анонимное общение по интересам</p>
+    <div id="mainMenu">
+        <h1>🤖 Чат-форум</h1>
+        <button onclick="createRoom()" style="width:100%; margin-bottom:12px;">➕ СОЗДАТЬ КОМНАТУ</button>
+        <button onclick="randomSearch()" style="width:100%; margin-bottom:20px; background:#8e44ad;">🎲 СЛУЧАЙНЫЙ ПОИСК</button>
+        <div id="roomsList"></div>
     </div>
 
-    <div class="nav" id="nav">
-        <div class="nav-item active" onclick="showSection('main')">🏠 Главная</div>
-        <div class="nav-item" onclick="showSection('categories')">📂 Категории</div>
-        <div class="nav-item" onclick="showSection('create')">➕ Создать</div>
-        <div class="nav-item random" onclick="randomSearch()">🎲 Случайный</div>
-    </div>
-
-    <div class="main" id="mainContent">
-        <!-- Главная -->
-        <div id="mainSection">
-            <div class="stats" id="stats">
-                <div class="stat-card">
-                    <div class="stat-value" id="totalRooms">0</div>
-                    <div class="stat-label">Комнат</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="totalUsers">0</div>
-                    <div class="stat-label">Участников</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="onlineNow">0</div>
-                    <div class="stat-label">Онлайн</div>
-                </div>
-            </div>
-
-            <div class="section-title">
-                <h2>🔥 Популярные комнаты</h2>
-            </div>
-
-            <div class="rooms-list" id="popularRooms"></div>
-        </div>
-
-        <!-- Категории -->
-        <div id="categoriesSection" class="hidden">
-            <div class="back-button">
-                <button class="back-btn" onclick="showSection('main')">← На главную</button>
-            </div>
-
-            <div class="categories-grid" id="categoriesGrid"></div>
-
-            <div id="categoryRooms" class="hidden">
-                <div class="section-title">
-                    <h2 id="selectedCategoryName">Комнаты</h2>
-                </div>
-                <div class="rooms-list" id="categoryRoomsList"></div>
-            </div>
-        </div>
-
-        <!-- Создание комнаты -->
-        <div id="createSection" class="hidden">
-            <div class="back-button">
-                <button class="back-btn" onclick="showSection('main')">← На главную</button>
-            </div>
-
-            <div class="create-form">
-                <h2 style="margin-bottom: 20px;">➕ Создать комнату</h2>
-
-                <div class="form-group">
-                    <label class="form-label">Категория</label>
-                    <select class="form-select" id="roomCategory">
-                        <option value="games">🎮 Игры</option>
-                        <option value="it">💻 IT и технологии</option>
-                        <option value="movies">🎬 Кино</option>
-                        <option value="books">📚 Книги</option>
-                        <option value="auto">🚗 Авто</option>
-                        <option value="music">🎵 Музыка</option>
-                        <option value="sport">⚽ Спорт</option>
-                        <option value="other">🔮 Другое</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Название комнаты</label>
-                    <input type="text" class="form-input" id="roomName" placeholder="Например: Фанаты Dark Souls" maxlength="50">
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Описание</label>
-                    <textarea class="form-textarea" id="roomDescription" placeholder="О чем будете общаться?" maxlength="200"></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Максимум участников</label>
-                    <div class="limit-buttons">
-                        <div class="limit-btn" onclick="selectLimit(2, this)">👥 2</div>
-                        <div class="limit-btn" onclick="selectLimit(5, this)">👥 5</div>
-                        <div class="limit-btn selected" onclick="selectLimit(10, this)">👥 10</div>
-                        <div class="limit-btn" onclick="selectLimit(50, this)">👥 50</div>
-                        <div class="limit-btn" onclick="selectLimit(100, this)">👥 100</div>
-                        <div class="limit-btn" onclick="selectLimit(999, this)">♾️ Без лимита</div>
-                    </div>
-                </div>
-
-                <button class="submit-btn" onclick="createRoom()">🚀 Создать комнату</button>
-            </div>
-        </div>
-
-        <!-- Чат -->
-        <div id="chatSection" class="hidden">
-            <div class="back-button">
-                <button class="back-btn" onclick="leaveRoom()">← Выйти из комнаты</button>
-            </div>
-
-            <div style="margin-bottom: 12px;" id="roomInfo">
-                <h2 id="chatRoomName"></h2>
-                <p id="chatRoomUsers"></p>
-            </div>
-
-            <div class="chat-container" id="messages"></div>
-
-            <div class="chat-input-area">
-                <input type="text" class="chat-input" id="messageInput" placeholder="Сообщение...">
-                <button class="chat-gpt" onclick="askGPT()">🤖 GPT</button>
-                <button class="chat-send" onclick="sendMessage()">➤</button>
+    <div id="chatRoom" class="hidden">
+        <button onclick="leaveRoom()" class="back">← НАЗАД</button>
+        <h2 id="roomTitle"></h2>
+        <div class="chat">
+            <div class="messages" id="messages"></div>
+            <div class="input-area">
+                <input type="text" id="messageInput" placeholder="Сообщение...">
+                <button onclick="sendMessage()">➤</button>
             </div>
         </div>
     </div>
@@ -525,340 +44,80 @@
     <script>
         let tg = window.Telegram.WebApp;
         tg.expand();
-        tg.enableClosingConfirmation();
-
-        let currentSection = 'main';
-        let selectedCategory = null;
-        let selectedLimit = 10;
+        
         let currentRoom = null;
-        let rooms = [];
-        let categories = [
-            { id: 'games', name: 'Игры', icon: '🎮', count: 0 },
-            { id: 'it', name: 'IT', icon: '💻', count: 0 },
-            { id: 'movies', name: 'Кино', icon: '🎬', count: 0 },
-            { id: 'books', name: 'Книги', icon: '📚', count: 0 },
-            { id: 'auto', name: 'Авто', icon: '🚗', count: 0 },
-            { id: 'music', name: 'Музыка', icon: '🎵', count: 0 },
-            { id: 'sport', name: 'Спорт', icon: '⚽', count: 0 },
-            { id: 'other', name: 'Другое', icon: '🔮', count: 0 }
-        ];
+        let roomsList = [];
 
         // Обработка сообщений от бота
         Telegram.WebApp.onEvent('message', function(event) {
-            try {
-                const data = JSON.parse(event.data);
-                
-                if (data.rooms) {
-                    rooms = data.rooms;
-                    renderAll();
-                }
-                
-                if (data.action === 'random_found') {
-                    currentRoom = data.room;
-                    document.getElementById('chatRoomName').textContent = currentRoom.name;
-                    document.getElementById('chatRoomUsers').textContent = `👥 ${currentRoom.users}/${currentRoom.maxUsers}`;
-                    document.getElementById('messages').innerHTML = '';
-                    addSystemMessage('✅ Собеседник найден! Можете общаться.');
-                    showSection('chat');
-                }
-                
-                if (data.action === 'random_timeout') {
-                    addSystemMessage('⏰ Время ожидания истекло');
-                    setTimeout(() => showSection('main'), 2000);
-                }
-                
-                if (data.success && data.room_id) {
-                    loadRooms();
-                }
-                
-            } catch (e) {
-                console.log('Получено сообщение:', event.data);
+            let data = JSON.parse(event.data);
+            
+            if (data.action === 'room_created') {
+                currentRoom = data.room_id;
+                enterRoom(currentRoom);
+            }
+            
+            if (data.action === 'room_joined') {
+                currentRoom = data.room_id;
+                enterRoom(currentRoom);
+            }
+            
+            if (data.action === 'found') {
+                currentRoom = data.room_id;
+                enterRoom(currentRoom);
+            }
+            
+            if (data.action === 'timeout') {
+                alert('⏰ Время вышло. Попробуй еще раз.');
             }
         });
 
-        function loadRooms() {
-            tg.sendData(JSON.stringify({action: 'get_rooms'}));
-        }
-
-        function renderAll() {
-            renderCategories();
-            renderRooms();
-            updateStats();
-        }
-
-        function updateStats() {
-            document.getElementById('totalRooms').textContent = rooms.length;
-            const totalUsers = rooms.reduce((sum, r) => sum + (r.users || 0), 0);
-            document.getElementById('totalUsers').textContent = totalUsers;
-            document.getElementById('onlineNow').textContent = totalUsers;
-        }
-
-        function renderCategories() {
-            const grid = document.getElementById('categoriesGrid');
-            if (!grid) return;
-            
-            grid.innerHTML = '';
-            
-            categories.forEach(cat => {
-                const count = rooms.filter(r => r.category === cat.id).length;
-                cat.count = count;
-                
-                const card = document.createElement('div');
-                card.className = 'category-card';
-                card.onclick = () => showCategory(cat.id);
-                card.innerHTML = `
-                    <div class="category-icon">${cat.icon}</div>
-                    <div class="category-name">${cat.name}</div>
-                    <div style="font-size: 10px; color: var(--tg-theme-hint-color);">${count} комн.</div>
-                `;
-                grid.appendChild(card);
-            });
-        }
-
-        function renderRooms() {
-            const popular = document.getElementById('popularRooms');
-            if (popular) {
-                popular.innerHTML = '';
-                if (rooms.length === 0) {
-                    popular.innerHTML = '<div style="text-align: center; padding: 20px; color: var(--tg-theme-hint-color);">🚀 Пока нет комнат<br><small>Создай первую!</small></div>';
-                } else {
-                    rooms.slice(0, 3).forEach(room => {
-                        popular.appendChild(createRoomCard(room));
-                    });
-                }
-            }
-        }
-
-        function createRoomCard(room) {
-            const card = document.createElement('div');
-            card.className = 'room-card';
-            card.onclick = () => enterRoom(room.id);
-            
-            const isFull = room.users >= room.maxUsers && room.maxUsers !== 999;
-            
-            card.innerHTML = `
-                <div class="room-header">
-                    <span class="room-name">${room.name}</span>
-                    <span class="room-category">${room.categoryName || room.category}</span>
-                </div>
-                <div class="room-description">${room.description || ''}</div>
-                <div class="room-footer">
-                    <span class="room-users">👥 ${room.users || 0}/${room.maxUsers === 999 ? '∞' : room.maxUsers}</span>
-                    ${isFull ? '<span class="full-badge">Полная</span>' : ''}
-                </div>
-            `;
-            return card;
-        }
-
-        function showCategory(categoryId) {
-            selectedCategory = categoryId;
-            const category = categories.find(c => c.id === categoryId);
-            
-            document.getElementById('selectedCategoryName').textContent = `${category.icon} ${category.name}`;
-            
-            const categoryRooms = rooms.filter(r => r.category === categoryId);
-            const list = document.getElementById('categoryRoomsList');
-            list.innerHTML = '';
-            
-            if (categoryRooms.length === 0) {
-                list.innerHTML = '<div style="text-align: center; padding: 20px; color: var(--tg-theme-hint-color);">Пока нет комнат в этой категории<br><small>Создай первую!</small></div>';
-            } else {
-                categoryRooms.forEach(room => {
-                    list.appendChild(createRoomCard(room));
-                });
-            }
-            
-            document.getElementById('categoryRooms').classList.remove('hidden');
-            showSection('categories');
-        }
-
-        function selectLimit(limit, element) {
-            selectedLimit = limit;
-            document.querySelectorAll('.limit-btn').forEach(btn => {
-                btn.classList.remove('selected');
-            });
-            element.classList.add('selected');
-        }
-
         function createRoom() {
-            const name = document.getElementById('roomName').value.trim();
-            const description = document.getElementById('roomDescription').value.trim();
-            const category = document.getElementById('roomCategory').value;
-            
-            if (!name || !description) {
-                tg.showPopup({
-                    title: '❌ Ошибка',
-                    message: 'Заполни название и описание',
-                    buttons: [{type: 'ok'}]
-                });
-                return;
-            }
-            
-            tg.sendData(JSON.stringify({
-                action: 'create_room',
-                name: name,
-                description: description,
-                category: category,
-                maxUsers: selectedLimit
-            }));
-            
-            tg.showPopup({
-                title: '✅ Комната создается',
-                message: 'Подожди секунду...',
-                buttons: [{type: 'ok'}]
-            });
-            
-            document.getElementById('roomName').value = '';
-            document.getElementById('roomDescription').value = '';
-            
-            setTimeout(() => {
-                showSection('main');
-                loadRooms();
-            }, 1000);
+            tg.sendData(JSON.stringify({action: 'create_room'}));
+        }
+
+        function randomSearch() {
+            tg.sendData(JSON.stringify({action: 'random_search'}));
         }
 
         function enterRoom(roomId) {
-            const room = rooms.find(r => r.id === roomId);
-            if (!room) return;
-            
-            if (room.users >= room.maxUsers && room.maxUsers !== 999) {
-                tg.showPopup({
-                    title: '❌ Комната полная',
-                    message: `В комнате уже ${room.users} человек (максимум ${room.maxUsers})`,
-                    buttons: [{type: 'ok'}]
-                });
-                return;
-            }
-            
-            tg.sendData(JSON.stringify({
-                action: 'join_room',
-                roomId: roomId
-            }));
-            
-            currentRoom = room;
-            document.getElementById('chatRoomName').textContent = room.name;
-            document.getElementById('chatRoomUsers').textContent = `👥 ${room.users || 0}/${room.maxUsers === 999 ? '∞' : room.maxUsers}`;
-            
+            currentRoom = roomId;
+            document.getElementById('mainMenu').classList.add('hidden');
+            document.getElementById('chatRoom').classList.remove('hidden');
+            document.getElementById('roomTitle').textContent = 'Комната ' + roomId;
             document.getElementById('messages').innerHTML = '';
-            addSystemMessage(`Ты вошел в комнату "${room.name}"`);
-            
-            showSection('chat');
-        }
-
-        function addSystemMessage(text) {
-            const container = document.getElementById('messages');
-            const msgDiv = document.createElement('div');
-            msgDiv.className = 'message system';
-            msgDiv.textContent = text;
-            container.appendChild(msgDiv);
-            container.scrollTop = container.scrollHeight;
         }
 
         function sendMessage() {
-            const input = document.getElementById('messageInput');
-            const text = input.value.trim();
+            let input = document.getElementById('messageInput');
+            let text = input.value.trim();
             if (!text || !currentRoom) return;
             
-            const msgDiv = document.createElement('div');
+            let msgDiv = document.createElement('div');
             msgDiv.className = 'message own';
             msgDiv.textContent = text;
             document.getElementById('messages').appendChild(msgDiv);
             
             tg.sendData(JSON.stringify({
                 action: 'send_message',
-                roomId: currentRoom.id,
+                room_id: currentRoom,
                 text: text
             }));
             
             input.value = '';
-            document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
-        }
-
-        function askGPT() {
-            const input = document.getElementById('messageInput');
-            const text = input.value.trim();
-            
-            if (!text) {
-                tg.showPopup({
-                    title: '🤖 GPT',
-                    message: 'Напиши вопрос в поле сообщения',
-                    buttons: [{type: 'ok'}]
-                });
-                return;
-            }
-            
-            sendMessage();
-            addSystemMessage('🤔 GPT думает...');
         }
 
         function leaveRoom() {
             if (currentRoom) {
                 tg.sendData(JSON.stringify({
                     action: 'leave_room',
-                    roomId: currentRoom.id
+                    room_id: currentRoom
                 }));
-                
-                addSystemMessage('Ты покинул комнату');
-                setTimeout(() => {
-                    document.getElementById('messages').innerHTML = '';
-                    currentRoom = null;
-                    showSection('main');
-                    loadRooms();
-                }, 1000);
-            } else {
-                showSection('main');
+                currentRoom = null;
             }
+            document.getElementById('mainMenu').classList.remove('hidden');
+            document.getElementById('chatRoom').classList.add('hidden');
         }
-
-        function randomSearch() {
-            tg.sendData(JSON.stringify({action: 'random_search'}));
-            
-            showSection('chat');
-            document.getElementById('chatRoomName').textContent = '🔍 Поиск собеседника';
-            document.getElementById('chatRoomUsers').textContent = '⏳ Ожидание...';
-            document.getElementById('messages').innerHTML = '';
-            addSystemMessage('🔍 Ищем случайного собеседника...');
-            
-            setTimeout(() => {
-                if (currentRoom && currentRoom.name === '🔍 Поиск собеседника') {
-                    addSystemMessage('❌ Время ожидания истекло');
-                    setTimeout(() => showSection('main'), 2000);
-                }
-            }, 35000);
-        }
-
-        function showSection(section) {
-            currentSection = section;
-            
-            document.getElementById('mainSection').classList.add('hidden');
-            document.getElementById('categoriesSection').classList.add('hidden');
-            document.getElementById('createSection').classList.add('hidden');
-            document.getElementById('chatSection').classList.add('hidden');
-            
-            document.getElementById(section + 'Section').classList.remove('hidden');
-            
-            if (section !== 'categories') {
-                document.getElementById('categoryRooms').classList.add('hidden');
-            }
-            
-            document.querySelectorAll('.nav-item').forEach((item, index) => {
-                item.classList.remove('active');
-                if (section === 'main' && index === 0) item.classList.add('active');
-                if (section === 'categories' && index === 1) item.classList.add('active');
-                if (section === 'create' && index === 2) item.classList.add('active');
-            });
-        }
-
-        document.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter' && currentSection === 'chat' && document.activeElement === document.getElementById('messageInput')) {
-                sendMessage();
-            }
-        });
-
-        // Инициализация
-        tg.ready();
-        loadRooms();
-        setInterval(loadRooms, 30000);
     </script>
 </body>
 </html>
