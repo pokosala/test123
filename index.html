@@ -623,42 +623,63 @@
             { id: 'other', name: 'Другое', icon: '🔮', count: 0 }
         ];
 
-        // Загрузка реальных комнат из бота
-        function loadRooms() {
-            showLoading(true);
-            tg.sendData(JSON.stringify({action: 'get_rooms'}));
-        }
-
-        // Обработка данных от бота
-        window.Telegram.WebApp.onEvent('sendData', function(data) {
+        // Обработка сообщений от бота
+        Telegram.WebApp.onEvent('message', function(event) {
             try {
-                const response = JSON.parse(data);
-                if (response.rooms) {
-                    rooms = response.rooms;
+                const data = JSON.parse(event.data);
+                
+                if (data.rooms) {
+                    // Получили список комнат
+                    rooms = data.rooms;
                     renderAll();
                 }
+                
+                if (data.action === 'random_found') {
+                    // Нашли собеседника!
+                    currentRoom = data.room;
+                    document.getElementById('chatRoomName').textContent = currentRoom.name;
+                    document.getElementById('chatRoomUsers').textContent = `👥 ${currentRoom.users}/${currentRoom.maxUsers}`;
+                    document.getElementById('messages').innerHTML = '';
+                    addSystemMessage('✅ Собеседник найден! Можете общаться.');
+                }
+                
+                if (data.action === 'random_searching') {
+                    addSystemMessage(data.message);
+                }
+                
+                if (data.action === 'random_timeout') {
+                    addSystemMessage('⏰ ' + data.message);
+                    setTimeout(() => {
+                        showSection('main');
+                    }, 2000);
+                }
+                
+                if (data.action === 'random_error') {
+                    addSystemMessage('❌ ' + data.message);
+                    setTimeout(() => {
+                        showSection('main');
+                    }, 2000);
+                }
+                
+                if (data.success && data.room_id) {
+                    // Комната создана, обновляем список
+                    loadRooms();
+                }
+                
             } catch (e) {
-                console.log('Waiting for bot data...');
+                console.log('Received message:', event.data);
             }
         });
 
-        // Эмуляция получения данных (пока нет реального соединения)
-        function fetchRoomsFromBot() {
-            // Здесь будет реальный запрос к боту
-            // Пока показываем заглушку с сообщением
-            const popularDiv = document.getElementById('popularRooms');
-            popularDiv.innerHTML = '<div style="text-align: center; padding: 20px;">⏳ Загрузка комнат...<br><small>Создай первую комнату!</small></div>';
+        // Загрузка комнат из бота
+        function loadRooms() {
+            tg.sendData(JSON.stringify({action: 'get_rooms'}));
         }
 
         function renderAll() {
             renderCategories();
             renderRooms();
             updateStats();
-            showLoading(false);
-        }
-
-        function showLoading(show) {
-            // Можно добавить индикатор загрузки
         }
 
         function updateStats() {
@@ -798,7 +819,6 @@
             
             setTimeout(() => {
                 showSection('main');
-                loadRooms(); // Перезагружаем комнаты
             }, 1000);
         }
 
@@ -921,18 +941,28 @@
         }
 
         function randomSearch() {
-            tg.sendData(JSON.stringify({action: 'random_search'}));
+            // Отправляем запрос на поиск
+            tg.sendData(JSON.stringify({
+                action: 'random_search'
+            }));
             
-            tg.showPopup({
-                title: '🔍 Поиск',
-                message: 'Ищем случайного собеседника...',
-                buttons: [{type: 'close'}]
-            });
+            // Показываем ожидание
+            showSection('chat');
+            document.getElementById('chatRoomName').textContent = '🔍 Поиск собеседника';
+            document.getElementById('chatRoomUsers').textContent = '⏳ Ожидание...';
+            document.getElementById('messages').innerHTML = '';
+            addSystemMessage('🔍 Ищем случайного собеседника...');
+            addSystemMessage('⏳ Это может занять несколько секунд');
             
+            // Устанавливаем таймаут
             setTimeout(() => {
-                showSection('chat');
-                addSystemMessage('🔍 Идет поиск собеседника...');
-            }, 1000);
+                if (currentRoom && currentRoom.name === '🔍 Поиск собеседника') {
+                    addSystemMessage('❌ Время ожидания истекло. Попробуй еще раз!');
+                    setTimeout(() => {
+                        showSection('main');
+                    }, 2000);
+                }
+            }, 35000);
         }
 
         function createPrivateRoom() {
@@ -1016,8 +1046,8 @@
         tg.ready();
         loadRooms();
         
-        // Пока нет реальных данных, показываем подсказку
-        fetchRoomsFromBot();
+        // Загружаем комнаты каждые 30 секунд (для обновления)
+        setInterval(loadRooms, 30000);
     </script>
 </body>
 </html>
