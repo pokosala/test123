@@ -3,27 +3,338 @@
 <html>
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui; }
+        body { background: #0a0c10; color: white; padding: 16px; }
+        .header { text-align: center; margin-bottom: 20px; }
+        .header h1 { color: #2b6bff; margin-bottom: 8px; }
+        .nav { display: flex; gap: 8px; margin-bottom: 20px; overflow-x: auto; padding: 4px 0; }
+        .nav-item { padding: 8px 16px; background: #16181c; border-radius: 20px; cursor: pointer; white-space: nowrap; }
+        .nav-item.active { background: #2b6bff; }
+        .stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin-bottom: 24px; }
+        .stat-card { background: #16181c; padding: 12px; border-radius: 16px; text-align: center; }
+        .stat-value { font-size: 24px; font-weight: bold; color: #2b6bff; }
+        .rooms-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
+        .room-card { background: #16181c; padding: 16px; border-radius: 16px; cursor: pointer; }
+        .room-header { display: flex; justify-content: space-between; margin-bottom: 8px; }
+        .room-name { font-weight: 600; }
+        .room-category { color: #8e8e93; font-size: 12px; }
+        .room-footer { display: flex; justify-content: space-between; margin-top: 12px; font-size: 12px; }
+        .room-users { background: #0a0c10; padding: 4px 8px; border-radius: 12px; color: #2b6bff; }
+        .create-form { background: #16181c; padding: 20px; border-radius: 16px; }
+        .form-group { margin-bottom: 16px; }
+        .form-label { display: block; margin-bottom: 8px; color: #8e8e93; }
+        .form-input, .form-textarea, .form-select { 
+            width: 100%; padding: 12px; background: #0a0c10; 
+            border: 1px solid #2a2f35; border-radius: 12px; color: white; 
+        }
+        .limit-buttons { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
+        .limit-btn { padding: 12px; background: #0a0c10; border: 1px solid #2a2f35; 
+                    border-radius: 12px; cursor: pointer; text-align: center; }
+        .limit-btn.selected { background: #2b6bff; border-color: #2b6bff; }
+        .submit-btn { width: 100%; padding: 16px; background: #2b6bff; color: white; 
+                     border: none; border-radius: 16px; font-size: 16px; font-weight: 600; 
+                     cursor: pointer; margin-top: 20px; }
+        .chat-container { background: #16181c; padding: 16px; border-radius: 16px; 
+                         min-height: 400px; margin-bottom: 16px; overflow-y: auto; }
+        .message { padding: 12px; background: #0a0c10; border-radius: 16px; 
+                  max-width: 80%; margin-bottom: 12px; align-self: flex-start; }
+        .message.own { margin-left: auto; background: #2b6bff; align-self: flex-end; }
+        .message.system { background: transparent; text-align: center; color: #8e8e93; }
+        .chat-input-area { display: flex; gap: 8px; background: #0a0c10; padding: 12px; 
+                          border-radius: 24px; position: sticky; bottom: 0; }
+        .chat-input { flex: 1; background: #16181c; border: none; border-radius: 20px; 
+                     padding: 12px 16px; color: white; }
+        .chat-send { background: #2b6bff; border: none; border-radius: 20px; 
+                    padding: 12px 24px; color: white; cursor: pointer; }
+        .chat-gpt { background: #8e44ad; border: none; border-radius: 20px; 
+                   padding: 12px 16px; color: white; cursor: pointer; }
+        .back-btn { background: #16181c; border: 1px solid #2a2f35; border-radius: 12px; 
+                   padding: 8px 16px; color: white; cursor: pointer; margin-bottom: 16px; }
+        .hidden { display: none; }
+    </style>
 </head>
 <body>
-    <h1>ТЕСТ КНОПКИ</h1>
-    
-    <button onclick="sendTest()" style="padding: 20px; font-size: 24px;"> 
-        🔴 НАЖМИ МЕНЯ
-    </button>
+    <div class="header">
+        <h1>🤖 ФОРУМ</h1>
+        <p>Анонимное общение</p>
+    </div>
+
+    <div class="nav" id="nav">
+        <div class="nav-item active" onclick="showSection('main')">🏠 Главная</div>
+        <div class="nav-item" onclick="showSection('categories')">📂 Категории</div>
+        <div class="nav-item" onclick="showSection('create')">➕ Создать</div>
+        <div class="nav-item" onclick="showSection('random')">🎲 Случайный</div>
+    </div>
+
+    <div class="main" id="mainContent">
+        <!-- Главная -->
+        <div id="mainSection">
+            <div class="stats" id="stats">
+                <div class="stat-card"><div class="stat-value" id="totalRooms">0</div><div>Комнат</div></div>
+                <div class="stat-card"><div class="stat-value" id="totalUsers">0</div><div>Участников</div></div>
+                <div class="stat-card"><div class="stat-value" id="onlineNow">0</div><div>Онлайн</div></div>
+            </div>
+            <h3>🔥 Популярные комнаты</h3>
+            <div class="rooms-list" id="popularRooms"></div>
+        </div>
+
+        <!-- Категории -->
+        <div id="categoriesSection" class="hidden">
+            <button class="back-btn" onclick="showSection('main')">← Назад</button>
+            <div class="categories-grid" id="categoriesGrid" style="display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin: 16px 0;"></div>
+            <div id="categoryRooms" class="hidden">
+                <h3 id="selectedCategoryName"></h3>
+                <div class="rooms-list" id="categoryRoomsList"></div>
+            </div>
+        </div>
+
+        <!-- Создание -->
+        <div id="createSection" class="hidden">
+            <button class="back-btn" onclick="showSection('main')">← Назад</button>
+            <div class="create-form">
+                <h3>➕ Создать комнату</h3>
+                <div class="form-group">
+                    <label class="form-label">Категория</label>
+                    <select class="form-select" id="roomCategory">
+                        <option value="games">🎮 Игры</option>
+                        <option value="it">💻 IT</option>
+                        <option value="movies">🎬 Кино</option>
+                        <option value="books">📚 Книги</option>
+                        <option value="auto">🚗 Авто</option>
+                        <option value="music">🎵 Музыка</option>
+                        <option value="sport">⚽ Спорт</option>
+                        <option value="other">🔮 Другое</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Название</label>
+                    <input class="form-input" id="roomName" maxlength="50">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Описание</label>
+                    <textarea class="form-textarea" id="roomDescription" maxlength="200"></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Участников</label>
+                    <div class="limit-buttons">
+                        <div class="limit-btn" onclick="selectLimit(2,this)">2</div>
+                        <div class="limit-btn" onclick="selectLimit(5,this)">5</div>
+                        <div class="limit-btn selected" onclick="selectLimit(10,this)">10</div>
+                        <div class="limit-btn" onclick="selectLimit(50,this)">50</div>
+                        <div class="limit-btn" onclick="selectLimit(100,this)">100</div>
+                        <div class="limit-btn" onclick="selectLimit(999,this)">∞</div>
+                    </div>
+                </div>
+                <button class="submit-btn" onclick="createRoom()">🚀 Создать</button>
+            </div>
+        </div>
+
+        <!-- Чат -->
+        <div id="chatSection" class="hidden">
+            <button class="back-btn" onclick="leaveRoom()">← Выйти</button>
+            <h2 id="chatRoomName"></h2>
+            <p id="chatRoomUsers"></p>
+            <div class="chat-container" id="messages"></div>
+            <div class="chat-input-area">
+                <input class="chat-input" id="messageInput" placeholder="Сообщение...">
+                <button class="chat-gpt" onclick="askGPT()">GPT</button>
+                <button class="chat-send" onclick="sendMessage()">➤</button>
+            </div>
+        </div>
+    </div>
 
     <script>
         let tg = window.Telegram.WebApp;
         tg.expand();
 
-        function sendTest() {
-            console.log("Кнопка нажата!");
-            
-            // Самое простое сообщение
-            tg.sendData("test");
-            
-            alert("Отправлено!");
+        let currentSection = 'main';
+        let selectedLimit = 10;
+        let currentRoom = null;
+        let rooms = [];
+        let categories = [
+            { id: 'games', name: 'Игры', icon: '🎮', count: 0 },
+            { id: 'it', name: 'IT', icon: '💻', count: 0 },
+            { id: 'movies', name: 'Кино', icon: '🎬', count: 0 },
+            { id: 'books', name: 'Книги', icon: '📚', count: 0 },
+            { id: 'auto', name: 'Авто', icon: '🚗', count: 0 },
+            { id: 'music', name: 'Музыка', icon: '🎵', count: 0 },
+            { id: 'sport', name: 'Спорт', icon: '⚽', count: 0 },
+            { id: 'other', name: 'Другое', icon: '🔮', count: 0 }
+        ];
+
+        Telegram.WebApp.onEvent('message', function(event) {
+            try {
+                let data = JSON.parse(event.data);
+                if (data.rooms) { rooms = data.rooms; renderAll(); }
+                if (data.action === 'random_found') {
+                    currentRoom = data.room;
+                    document.getElementById('chatRoomName').textContent = currentRoom.name;
+                    document.getElementById('chatRoomUsers').textContent = `👥 ${currentRoom.users}/${currentRoom.maxUsers}`;
+                    document.getElementById('messages').innerHTML = '';
+                    addSystemMessage('✅ Собеседник найден!');
+                    showSection('chat');
+                }
+            } catch(e) {}
+        });
+
+        function loadRooms() { tg.sendData(JSON.stringify({action:'get_rooms'})); }
+        
+        function renderAll() {
+            renderCategories();
+            renderRooms();
+            updateStats();
         }
+        
+        function updateStats() {
+            document.getElementById('totalRooms').textContent = rooms.length;
+            let total = rooms.reduce((s,r)=>s + (r.users||0),0);
+            document.getElementById('totalUsers').textContent = total;
+            document.getElementById('onlineNow').textContent = total;
+        }
+        
+        function renderCategories() {
+            let grid = document.getElementById('categoriesGrid');
+            grid.innerHTML = '';
+            categories.forEach(cat => {
+                cat.count = rooms.filter(r=>r.category===cat.id).length;
+                let card = document.createElement('div');
+                card.className = 'category-card';
+                card.style.cssText = 'background:#16181c; border-radius:16px; padding:12px; text-align:center; cursor:pointer;';
+                card.onclick = () => showCategory(cat.id);
+                card.innerHTML = `<div style="font-size:24px;">${cat.icon}</div><div>${cat.name}</div><div style="font-size:10px;color:#8e8e93;">${cat.count} комн.</div>`;
+                grid.appendChild(card);
+            });
+        }
+        
+        function renderRooms() {
+            let popular = document.getElementById('popularRooms');
+            popular.innerHTML = '';
+            if (rooms.length === 0) popular.innerHTML = '<div style="text-align:center;padding:20px;color:#8e8e93;">Пока нет комнат</div>';
+            else rooms.slice(0,3).forEach(room => popular.appendChild(createRoomCard(room)));
+        }
+        
+        function createRoomCard(room) {
+            let card = document.createElement('div');
+            card.className = 'room-card';
+            card.onclick = () => enterRoom(room.id);
+            let full = room.users >= room.maxUsers && room.maxUsers !== 999;
+            card.innerHTML = `
+                <div class="room-header"><span class="room-name">${room.name}</span><span class="room-category">${room.categoryName}</span></div>
+                <div class="room-description" style="color:#8e8e93;margin:8px 0;">${room.description||''}</div>
+                <div class="room-footer"><span class="room-users">👥 ${room.users}/${room.maxUsers===999?'∞':room.maxUsers}</span>
+                ${full?'<span class="full-badge" style="background:#e74c3c;padding:2px8px;border-radius:12px;">Полная</span>':''}</div>
+            `;
+            return card;
+        }
+        
+        function showCategory(id) {
+            let cat = categories.find(c=>c.id===id);
+            document.getElementById('selectedCategoryName').textContent = cat.icon+' '+cat.name;
+            let list = document.getElementById('categoryRoomsList');
+            list.innerHTML = '';
+            rooms.filter(r=>r.category===id).forEach(r=>list.appendChild(createRoomCard(r)));
+            document.getElementById('categoryRooms').classList.remove('hidden');
+            showSection('categories');
+        }
+        
+        function selectLimit(limit, el) {
+            selectedLimit = limit;
+            document.querySelectorAll('.limit-btn').forEach(b=>b.classList.remove('selected'));
+            el.classList.add('selected');
+        }
+        
+        function createRoom() {
+            let name = document.getElementById('roomName').value.trim();
+            let desc = document.getElementById('roomDescription').value.trim();
+            let cat = document.getElementById('roomCategory').value;
+            if(!name || !desc) { alert('Заполни всё!'); return; }
+            tg.sendData(JSON.stringify({action:'create_room', name, description:desc, category:cat, maxUsers:selectedLimit}));
+            alert('Комната создается...');
+            document.getElementById('roomName').value = '';
+            document.getElementById('roomDescription').value = '';
+            setTimeout(()=>showSection('main'), 1000);
+        }
+        
+        function enterRoom(id) {
+            let room = rooms.find(r=>r.id===id);
+            if(!room) return;
+            if(room.users >= room.maxUsers && room.maxUsers!==999) { alert('Комната полная'); return; }
+            tg.sendData(JSON.stringify({action:'join_room', roomId:id}));
+            currentRoom = room;
+            document.getElementById('chatRoomName').textContent = room.name;
+            document.getElementById('chatRoomUsers').textContent = `👥 ${room.users}/${room.maxUsers===999?'∞':room.maxUsers}`;
+            document.getElementById('messages').innerHTML = '';
+            addSystemMessage(`Ты вошел в ${room.name}`);
+            showSection('chat');
+        }
+        
+        function addSystemMessage(t) {
+            let m = document.createElement('div');
+            m.className = 'message system';
+            m.textContent = t;
+            document.getElementById('messages').appendChild(m);
+            m.scrollIntoView();
+        }
+        
+        function sendMessage() {
+            let input = document.getElementById('messageInput');
+            let text = input.value.trim();
+            if(!text || !currentRoom) return;
+            let msg = document.createElement('div');
+            msg.className = 'message own';
+            msg.textContent = text;
+            document.getElementById('messages').appendChild(msg);
+            tg.sendData(JSON.stringify({action:'send_message', roomId:currentRoom.id, text}));
+            input.value = '';
+            msg.scrollIntoView();
+        }
+        
+        function askGPT() {
+            let input = document.getElementById('messageInput');
+            let text = input.value.trim();
+            if(!text) { alert('Напиши вопрос'); return; }
+            sendMessage();
+            addSystemMessage('🤔 GPT думает...');
+        }
+        
+        function leaveRoom() {
+            if(currentRoom) {
+                tg.sendData(JSON.stringify({action:'leave_room', roomId:currentRoom.id}));
+                addSystemMessage('Ты вышел');
+                setTimeout(()=>{ document.getElementById('messages').innerHTML = ''; currentRoom = null; showSection('main'); },1000);
+            } else showSection('main');
+        }
+        
+        function showSection(s) {
+            currentSection = s;
+            ['mainSection','categoriesSection','createSection','chatSection'].forEach(id => 
+                document.getElementById(id).classList.add('hidden'));
+            document.getElementById(s+'Section').classList.remove('hidden');
+            if(s==='random') {
+                tg.sendData(JSON.stringify({action:'random_search'}));
+                showSection('chat');
+                document.getElementById('chatRoomName').textContent = '🔍 Поиск';
+                document.getElementById('chatRoomUsers').textContent = '⏳ Ожидание...';
+                document.getElementById('messages').innerHTML = '';
+                addSystemMessage('🔍 Ищем собеседника...');
+                setTimeout(()=>{
+                    if(currentRoom && currentRoom.name==='🔍 Поиск') {
+                        addSystemMessage('❌ Время вышло');
+                        setTimeout(()=>showSection('main'),2000);
+                    }
+                },35000);
+            }
+            document.querySelectorAll('.nav-item').forEach((item,i)=>{
+                item.classList.toggle('active', (i===0 && s==='main') || (i===1 && s==='categories') || (i===2 && s==='create') || (i===3 && s==='random'));
+            });
+        }
+
+        tg.ready();
+        loadRooms();
+        setInterval(loadRooms, 30000);
     </script>
 </body>
 </html>
