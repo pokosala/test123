@@ -1,4 +1,5 @@
- <!DOCTYPE html>
+
+<!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
@@ -21,7 +22,6 @@
             flex-direction: column;
         }
 
-        /* Шапка */
         .header {
             background: var(--tg-theme-secondary-bg-color, #16181c);
             padding: 16px;
@@ -44,7 +44,6 @@
             color: var(--tg-theme-hint-color, #8e8e93);
         }
 
-        /* Навигация */
         .nav {
             display: flex;
             background: var(--tg-theme-secondary-bg-color, #16181c);
@@ -83,14 +82,12 @@
             color: white;
         }
 
-        /* Основной контент */
         .main {
             flex: 1;
             padding: 16px;
             overflow-y: auto;
         }
 
-        /* Статистика */
         .stats {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -117,7 +114,6 @@
             color: var(--tg-theme-hint-color, #8e8e93);
         }
 
-        /* Категории */
         .categories-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -149,7 +145,6 @@
             font-weight: 500;
         }
 
-        /* Секция */
         .section-title {
             display: flex;
             justify-content: space-between;
@@ -172,7 +167,6 @@
             cursor: pointer;
         }
 
-        /* Комнаты */
         .rooms-list {
             display: flex;
             flex-direction: column;
@@ -250,7 +244,6 @@
             font-size: 10px;
         }
 
-        /* Форма создания комнаты */
         .create-form {
             background: var(--tg-theme-secondary-bg-color, #16181c);
             border-radius: 16px;
@@ -269,7 +262,7 @@
             color: var(--tg-theme-hint-color, #8e8e93);
         }
 
-        .form-input, .form-textarea {
+        .form-input, .form-textarea, .form-select {
             width: 100%;
             padding: 12px;
             background: var(--tg-theme-bg-color, #0a0c10);
@@ -320,7 +313,6 @@
             margin-top: 20px;
         }
 
-        /* Чат */
         .chat-container {
             background: var(--tg-theme-secondary-bg-color, #16181c);
             border-radius: 16px;
@@ -340,6 +332,7 @@
             border-radius: 16px;
             max-width: 80%;
             border: 1px solid var(--tg-theme-hint-color, #2a2f35);
+            align-self: flex-start;
         }
 
         .message.own {
@@ -347,6 +340,16 @@
             background: var(--tg-theme-button-color, #2b6bff);
             color: white;
             border: none;
+            align-self: flex-end;
+        }
+
+        .message.system {
+            background: transparent;
+            border: none;
+            text-align: center;
+            color: var(--tg-theme-hint-color, #8e8e93);
+            font-style: italic;
+            max-width: 100%;
         }
 
         .message-header {
@@ -399,7 +402,6 @@
             cursor: pointer;
         }
 
-        /* Приватные комнаты */
         .private-section {
             background: var(--tg-theme-secondary-bg-color, #16181c);
             border-radius: 16px;
@@ -433,7 +435,6 @@
             color: var(--tg-theme-hint-color, #8e8e93);
         }
 
-        /* Кнопка назад */
         .back-button {
             margin-bottom: 16px;
         }
@@ -448,7 +449,6 @@
             font-size: 14px;
         }
 
-        /* Загрузка */
         .loading {
             text-align: center;
             padding: 40px;
@@ -466,7 +466,6 @@
         <p>Анонимное общение по интересам</p>
     </div>
 
-    <!-- Навигация -->
     <div class="nav" id="nav">
         <div class="nav-item active" onclick="showSection('main')">🏠 Главная</div>
         <div class="nav-item" onclick="showSection('categories')">📂 Категории</div>
@@ -476,7 +475,6 @@
     </div>
 
     <div class="main" id="mainContent">
-        <!-- Главная страница -->
         <div id="mainSection">
             <div class="stats" id="stats">
                 <div class="stat-card">
@@ -498,28 +496,21 @@
                 <button onclick="showSection('categories')">Все →</button>
             </div>
 
-            <div class="rooms-list" id="popularRooms">
-                <!-- Будут добавлены через JS -->
-            </div>
+            <div class="rooms-list" id="popularRooms"></div>
 
             <div class="section-title">
                 <h2>✨ Новые комнаты</h2>
             </div>
 
-            <div class="rooms-list" id="newRooms">
-                <!-- Будут добавлены через JS -->
-            </div>
+            <div class="rooms-list" id="newRooms"></div>
         </div>
 
-        <!-- Категории -->
         <div id="categoriesSection" class="hidden">
             <div class="back-button">
                 <button class="back-btn" onclick="showSection('main')">← На главную</button>
             </div>
 
-            <div class="categories-grid" id="categoriesGrid">
-                <!-- Будут добавлены через JS -->
-            </div>
+            <div class="categories-grid" id="categoriesGrid"></div>
 
             <div id="categoryRooms" class="hidden">
                 <div class="section-title">
@@ -529,7 +520,6 @@
             </div>
         </div>
 
-        <!-- Создание комнаты -->
         <div id="createSection" class="hidden">
             <div class="back-button">
                 <button class="back-btn" onclick="showSection('main')">← На главную</button>
@@ -540,7 +530,7 @@
 
                 <div class="form-group">
                     <label class="form-label">Категория</label>
-                    <select class="form-input" id="roomCategory">
+                    <select class="form-select" id="roomCategory">
                         <option value="games">🎮 Игры</option>
                         <option value="it">💻 IT и технологии</option>
                         <option value="movies">🎬 Кино</option>
@@ -554,23 +544,23 @@
 
                 <div class="form-group">
                     <label class="form-label">Название комнаты</label>
-                    <input type="text" class="form-input" id="roomName" placeholder="Например: Фанаты Dark Souls">
+                    <input type="text" class="form-input" id="roomName" placeholder="Например: Фанаты Dark Souls" maxlength="50">
                 </div>
 
                 <div class="form-group">
                     <label class="form-label">Описание</label>
-                    <textarea class="form-textarea" id="roomDescription" placeholder="О чем будете общаться?"></textarea>
+                    <textarea class="form-textarea" id="roomDescription" placeholder="О чем будете общаться?" maxlength="200"></textarea>
                 </div>
 
                 <div class="form-group">
                     <label class="form-label">Максимум участников</label>
                     <div class="limit-buttons">
-                        <div class="limit-btn" onclick="selectLimit(2)">👥 2</div>
-                        <div class="limit-btn" onclick="selectLimit(5)">👥 5</div>
-                        <div class="limit-btn" onclick="selectLimit(10)">👥 10</div>
-                        <div class="limit-btn" onclick="selectLimit(50)">👥 50</div>
-                        <div class="limit-btn" onclick="selectLimit(100)">👥 100</div>
-                        <div class="limit-btn" onclick="selectLimit(999)">♾️ Без лимита</div>
+                        <div class="limit-btn" onclick="selectLimit(2, this)">👥 2</div>
+                        <div class="limit-btn" onclick="selectLimit(5, this)">👥 5</div>
+                        <div class="limit-btn selected" onclick="selectLimit(10, this)">👥 10</div>
+                        <div class="limit-btn" onclick="selectLimit(50, this)">👥 50</div>
+                        <div class="limit-btn" onclick="selectLimit(100, this)">👥 100</div>
+                        <div class="limit-btn" onclick="selectLimit(999, this)">♾️ Без лимита</div>
                     </div>
                 </div>
 
@@ -578,7 +568,6 @@
             </div>
         </div>
 
-        <!-- Приватные комнаты -->
         <div id="privateSection" class="hidden">
             <div class="back-button">
                 <button class="back-btn" onclick="showSection('main')">← На главную</button>
@@ -606,7 +595,6 @@
             </div>
         </div>
 
-        <!-- Комната чата -->
         <div id="chatSection" class="hidden">
             <div class="back-button">
                 <button class="back-btn" onclick="leaveRoom()">← Выйти из комнаты</button>
@@ -632,68 +620,13 @@
         tg.expand();
         tg.enableClosingConfirmation();
 
-        // Данные
         let currentSection = 'main';
         let selectedCategory = null;
         let selectedLimit = 10;
         let currentRoom = null;
         let messages = [];
+        let rooms = [];
         
-        // Моковые данные для демонстрации
-        let rooms = [
-            {
-                id: 'room1',
-                name: '🎮 Фанаты Dark Souls',
-                description: 'Обсуждаем лор, прохождения и билды',
-                category: 'games',
-                categoryName: '🎮 Игры',
-                users: 5,
-                maxUsers: 10,
-                tags: ['souls', 'hardcore']
-            },
-            {
-                id: 'room2',
-                name: '💻 Python для начинающих',
-                description: 'Помощь с кодом, вопросы новичков',
-                category: 'it',
-                categoryName: '💻 IT',
-                users: 8,
-                maxUsers: 50,
-                tags: ['python', 'обучение']
-            },
-            {
-                id: 'room3',
-                name: '⚽ Футбольный клуб',
-                description: 'Обсуждение матчей, трансферов',
-                category: 'sport',
-                categoryName: '⚽ Спорт',
-                users: 12,
-                maxUsers: 100,
-                tags: ['футбол', 'премьер-лига']
-            },
-            {
-                id: 'room4',
-                name: '🎬 Киноманы',
-                description: 'Что посмотреть? Обсуждение новинок',
-                category: 'movies',
-                categoryName: '🎬 Кино',
-                users: 3,
-                maxUsers: 5,
-                tags: ['кино', 'сериалы']
-            },
-            {
-                id: 'room5',
-                name: '🚗 Автофанаты',
-                description: 'Тачки, тюнинг, гонки',
-                category: 'auto',
-                categoryName: '🚗 Авто',
-                users: 7,
-                maxUsers: 20,
-                tags: ['auto', 'tuning']
-            }
-        ];
-
-        // Категории
         const categories = [
             { id: 'games', name: 'Игры', icon: '🎮', count: 0 },
             { id: 'it', name: 'IT', icon: '💻', count: 0 },
@@ -705,24 +638,29 @@
             { id: 'other', name: 'Другое', icon: '🔮', count: 0 }
         ];
 
-        // Инициализация
-        function init() {
-            updateStats();
-            renderCategories();
-            renderRooms();
-            highlightNav();
+        function loadRooms() {
+            tg.sendData(JSON.stringify({action: 'get_rooms'}));
+            
+            setTimeout(() => {
+                fetchRoomsFromBot();
+            }, 500);
         }
 
-        // Обновление статистики
+        function fetchRoomsFromBot() {
+            console.log('Загрузка комнат...');
+        }
+
         function updateStats() {
             document.getElementById('totalRooms').textContent = rooms.length;
-            document.getElementById('totalUsers').textContent = rooms.reduce((sum, r) => sum + r.users, 0);
-            document.getElementById('onlineNow').textContent = rooms.reduce((sum, r) => sum + r.users, 0);
+            const totalUsers = rooms.reduce((sum, r) => sum + r.users, 0);
+            document.getElementById('totalUsers').textContent = totalUsers;
+            document.getElementById('onlineNow').textContent = totalUsers;
         }
 
-        // Отрисовка категорий
         function renderCategories() {
             const grid = document.getElementById('categoriesGrid');
+            if (!grid) return;
+            
             grid.innerHTML = '';
             
             categories.forEach(cat => {
@@ -741,24 +679,27 @@
             });
         }
 
-        // Отрисовка комнат
         function renderRooms() {
-            // Популярные комнаты (топ-3)
             const popular = document.getElementById('popularRooms');
-            popular.innerHTML = '';
-            rooms.slice(0, 3).forEach(room => {
-                popular.appendChild(createRoomCard(room));
-            });
+            if (popular) {
+                popular.innerHTML = '';
+                rooms.slice(0, 3).forEach(room => {
+                    popular.appendChild(createRoomCard(room));
+                });
+            }
 
-            // Новые комнаты (последние 2)
             const newRooms = document.getElementById('newRooms');
-            newRooms.innerHTML = '';
-            rooms.slice(-2).forEach(room => {
-                newRooms.appendChild(createRoomCard(room));
-            });
+            if (newRooms) {
+                newRooms.innerHTML = '';
+                rooms.slice(-2).forEach(room => {
+                    newRooms.appendChild(createRoomCard(room));
+                });
+            }
+            
+            updateStats();
+            renderCategories();
         }
 
-        // Создание карточки комнаты
         function createRoomCard(room) {
             const card = document.createElement('div');
             card.className = 'room-card';
@@ -769,21 +710,17 @@
             card.innerHTML = `
                 <div class="room-header">
                     <span class="room-name">${room.name}</span>
-                    <span class="room-category">${room.categoryName}</span>
+                    <span class="room-category">${room.categoryName || room.category}</span>
                 </div>
-                <div class="room-description">${room.description}</div>
+                <div class="room-description">${room.description || ''}</div>
                 <div class="room-footer">
                     <span class="room-users">👥 ${room.users}/${room.maxUsers === 999 ? '∞' : room.maxUsers}</span>
-                    <div class="room-tags">
-                        ${room.tags.map(t => `<span class="tag">#${t}</span>`).join('')}
-                    </div>
                     ${isFull ? '<span class="full-badge">Полная</span>' : ''}
                 </div>
             `;
             return card;
         }
 
-        // Показать категорию
         function showCategory(categoryId) {
             selectedCategory = categoryId;
             const category = categories.find(c => c.id === categoryId);
@@ -803,21 +740,20 @@
             }
             
             document.getElementById('categoryRooms').classList.remove('hidden');
+            showSection('categories');
         }
 
-        // Выбор лимита
-        function selectLimit(limit) {
+        function selectLimit(limit, element) {
             selectedLimit = limit;
             document.querySelectorAll('.limit-btn').forEach(btn => {
                 btn.classList.remove('selected');
             });
-            event.target.classList.add('selected');
+            element.classList.add('selected');
         }
 
-        // Создание комнаты
         function createRoom() {
-            const name = document.getElementById('roomName').value;
-            const description = document.getElementById('roomDescription').value;
+            const name = document.getElementById('roomName').value.trim();
+            const description = document.getElementById('roomDescription').value.trim();
             const category = document.getElementById('roomCategory').value;
             
             if (!name || !description) {
@@ -829,39 +765,28 @@
                 return;
             }
             
-            const categoryObj = categories.find(c => c.id === category);
-            
-            const newRoom = {
-                id: 'room_' + Date.now(),
+            tg.sendData(JSON.stringify({
+                action: 'create_room',
                 name: name,
                 description: description,
                 category: category,
-                categoryName: categoryObj.icon + ' ' + categoryObj.name,
-                users: 1,
-                maxUsers: selectedLimit,
-                tags: []
-            };
-            
-            rooms.unshift(newRoom);
-            updateStats();
-            renderCategories();
-            renderRooms();
+                maxUsers: selectedLimit
+            }));
             
             tg.showPopup({
-                title: '✅ Комната создана!',
-                message: `Ты создал комнату "${name}"`,
+                title: '✅ Комната создается',
+                message: 'Подожди секунду...',
                 buttons: [{type: 'ok'}]
             });
             
-            // Сбрасываем форму
             document.getElementById('roomName').value = '';
             document.getElementById('roomDescription').value = '';
             
-            // Переходим в главную
-            showSection('main');
+            setTimeout(() => {
+                showSection('main');
+            }, 1000);
         }
 
-        // Вход в комнату
         function enterRoom(roomId) {
             const room = rooms.find(r => r.id === roomId);
             if (!room) return;
@@ -875,23 +800,21 @@
                 return;
             }
             
+            tg.sendData(JSON.stringify({
+                action: 'join_room',
+                roomId: roomId
+            }));
+            
             currentRoom = room;
             document.getElementById('chatRoomName').textContent = room.name;
             document.getElementById('chatRoomUsers').textContent = `👥 ${room.users}/${room.maxUsers === 999 ? '∞' : room.maxUsers}`;
             
-            // Добавляем системное сообщение
-            messages = [];
-            addMessage('system', `Ты вошел в комнату "${room.name}"`);
-            
-            // Имитация других пользователей
-            if (room.users > 1) {
-                addMessage('User_' + Math.floor(Math.random() * 1000), 'Всем привет!', false);
-            }
+            document.getElementById('messages').innerHTML = '';
+            addSystemMessage(`Ты вошел в комнату "${room.name}"`);
             
             showSection('chat');
         }
 
-        // Добавление сообщения
         function addMessage(sender, text, isOwn = false) {
             const container = document.getElementById('messages');
             const msgDiv = document.createElement('div');
@@ -913,17 +836,31 @@
             container.scrollTop = container.scrollHeight;
         }
 
-        // Отправка сообщения
+        function addSystemMessage(text) {
+            const container = document.getElementById('messages');
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'message system';
+            msgDiv.textContent = text;
+            container.appendChild(msgDiv);
+            container.scrollTop = container.scrollHeight;
+        }
+
         function sendMessage() {
             const input = document.getElementById('messageInput');
             const text = input.value.trim();
             if (!text || !currentRoom) return;
             
             addMessage('Ты', text, true);
+            
+            tg.sendData(JSON.stringify({
+                action: 'send_message',
+                roomId: currentRoom.id,
+                text: text
+            }));
+            
             input.value = '';
         }
 
-        // Запрос к GPT
         function askGPT() {
             const input = document.getElementById('messageInput');
             const text = input.value.trim();
@@ -938,67 +875,54 @@
             }
             
             addMessage('Ты', text, true);
+            
+            tg.sendData(JSON.stringify({
+                action: 'ask_gpt',
+                roomId: currentRoom.id,
+                query: text
+            }));
+            
             input.value = '';
-            
-            addMessage('GPT', '🤔 Думаю над вопросом...');
-            
-            setTimeout(() => {
-                document.getElementById('messages').lastElementChild.remove();
-                addMessage('GPT', 'Ответ на "' + text + '": Это интересный вопрос!');
-            }, 2000);
+            addSystemMessage('🤔 GPT думает...');
         }
 
-        // Выход из комнаты
         function leaveRoom() {
             if (currentRoom) {
-                addMessage('system', 'Ты покинул комнату');
+                tg.sendData(JSON.stringify({
+                    action: 'leave_room',
+                    roomId: currentRoom.id
+                }));
+                
+                addSystemMessage('Ты покинул комнату');
                 setTimeout(() => {
                     document.getElementById('messages').innerHTML = '';
                     currentRoom = null;
                     showSection('main');
                 }, 1000);
+            } else {
+                showSection('main');
             }
         }
 
-        // Случайный поиск
         function randomSearch() {
+            tg.sendData(JSON.stringify({action: 'random_search'}));
+            
             tg.showPopup({
                 title: '🔍 Поиск',
                 message: 'Ищем случайного собеседника...',
                 buttons: [{type: 'close'}]
             });
-            
-            setTimeout(() => {
-                const randomRoom = {
-                    id: 'random_' + Date.now(),
-                    name: '🎲 Случайный чат',
-                    description: 'Временная комната',
-                    category: 'other',
-                    categoryName: '🔮 Другое',
-                    users: 2,
-                    maxUsers: 2,
-                    tags: ['random']
-                };
-                
-                rooms.unshift(randomRoom);
-                currentRoom = randomRoom;
-                
-                document.getElementById('chatRoomName').textContent = randomRoom.name;
-                document.getElementById('chatRoomUsers').textContent = '👥 2/2';
-                
-                document.getElementById('messages').innerHTML = '';
-                addMessage('system', '🔍 Собеседник найден!');
-                addMessage('User_123', 'Привет, как дела?', false);
-                
-                showSection('chat');
-            }, 2000);
         }
 
-        // Приватные комнаты
         function createPrivateRoom() {
             const code = 'room_' + Math.random().toString(36).substring(2, 10);
-            const inviteLink = `https://t.me/your_bot?start=${code}`;
             
+            tg.sendData(JSON.stringify({
+                action: 'create_private',
+                code: code
+            }));
+            
+            const inviteLink = `https://t.me/your_bot?start=${code}`;
             document.getElementById('inviteLink').textContent = inviteLink;
             document.getElementById('inviteLinkContainer').classList.remove('hidden');
             
@@ -1020,27 +944,10 @@
                 return;
             }
             
-            const privateRoom = {
-                id: 'private_' + Date.now(),
-                name: '🔐 Приватный чат',
-                description: 'Приватная комната',
-                category: 'other',
-                categoryName: '🔐 Приватная',
-                users: 2,
-                maxUsers: 2,
-                tags: ['private']
-            };
-            
-            rooms.unshift(privateRoom);
-            currentRoom = privateRoom;
-            
-            document.getElementById('chatRoomName').textContent = privateRoom.name;
-            document.getElementById('chatRoomUsers').textContent = '👥 2/2';
-            
-            document.getElementById('messages').innerHTML = '';
-            addMessage('system', '✅ Ты вошел в приватную комнату');
-            
-            showSection('chat');
+            tg.sendData(JSON.stringify({
+                action: 'join_private',
+                code: code
+            }));
         }
 
         function copyInviteLink() {
@@ -1053,48 +960,72 @@
             });
         }
 
-        // Переключение секций
         function showSection(section) {
             currentSection = section;
             
-            // Скрываем все секции
             document.getElementById('mainSection').classList.add('hidden');
             document.getElementById('categoriesSection').classList.add('hidden');
             document.getElementById('createSection').classList.add('hidden');
             document.getElementById('privateSection').classList.add('hidden');
             document.getElementById('chatSection').classList.add('hidden');
             
-            // Показываем нужную
             document.getElementById(section + 'Section').classList.remove('hidden');
             
-            // Скрываем комнаты категории при переключении
             if (section !== 'categories') {
                 document.getElementById('categoryRooms').classList.add('hidden');
             }
             
-            highlightNav();
-        }
-
-        // Подсветка навигации
-        function highlightNav() {
             document.querySelectorAll('.nav-item').forEach(item => {
                 item.classList.remove('active');
             });
             
-            if (currentSection === 'main') document.querySelectorAll('.nav-item')[0].classList.add('active');
-            if (currentSection === 'categories') document.querySelectorAll('.nav-item')[1].classList.add('active');
-            if (currentSection === 'create') document.querySelectorAll('.nav-item')[2].classList.add('active');
-            if (currentSection === 'private') document.querySelectorAll('.nav-item')[3].classList.add('active');
+            if (section === 'main') document.querySelectorAll('.nav-item')[0].classList.add('active');
+            if (section === 'categories') document.querySelectorAll('.nav-item')[1].classList.add('active');
+            if (section === 'create') document.querySelectorAll('.nav-item')[2].classList.add('active');
+            if (section === 'private') document.querySelectorAll('.nav-item')[3].classList.add('active');
         }
 
-        // Обработка Enter
-        document.getElementById('messageInput')?.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') sendMessage();
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && currentSection === 'chat' && document.activeElement === document.getElementById('messageInput')) {
+                sendMessage();
+            }
         });
 
-        // Инициализация
         tg.ready();
-        init();
+        loadRooms();
+        
+        setTimeout(() => {
+            rooms = [
+                {
+                    id: 'room1',
+                    name: '🎮 Игровой клуб',
+                    description: 'Обсуждаем игры и делимся впечатлениями',
+                    category: 'games',
+                    categoryName: '🎮 Игры',
+                    users: 3,
+                    maxUsers: 10
+                },
+                {
+                    id: 'room2',
+                    name: '💻 Python разработка',
+                    description: 'Помощь с кодом, обсуждение библиотек',
+                    category: 'it',
+                    categoryName: '💻 IT',
+                    users: 5,
+                    maxUsers: 20
+                },
+                {
+                    id: 'room3',
+                    name: '⚽ Футбольный клуб',
+                    description: 'Обсуждаем матчи и трансферы',
+                    category: 'sport',
+                    categoryName: '⚽ Спорт',
+                    users: 2,
+                    maxUsers: 5
+                }
+            ];
+            renderRooms();
+        }, 1000);
     </script>
 </body>
 </html>
