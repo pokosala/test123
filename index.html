@@ -6,118 +6,330 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { font-family: system-ui; margin: 0; padding: 16px; background: #0a0c10; color: white; }
-        .room { background: #16181c; padding: 16px; border-radius: 12px; margin-bottom: 12px; cursor: pointer; }
-        .room:hover { background: #1e2228; }
-        .chat { display: flex; flex-direction: column; height: 80vh; }
-        .messages { flex: 1; overflow-y: auto; padding: 16px; background: #16181c; border-radius: 12px; margin-bottom: 12px; }
-        .message { margin-bottom: 8px; padding: 8px 12px; background: #0a0c10; border-radius: 8px; max-width: 80%; }
-        .message.own { margin-left: auto; background: #2b6bff; }
-        .input-area { display: flex; gap: 8px; }
-        input { flex: 1; padding: 12px; background: #16181c; border: none; border-radius: 8px; color: white; }
-        button { padding: 12px 20px; background: #2b6bff; border: none; border-radius: 8px; color: white; cursor: pointer; }
-        .back { background: #8e44ad; }
-        .hidden { display: none; }
-        h2 { margin-top: 0; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        body {
+            background: #0a0c10;
+            color: #e4e6eb;
+            padding: 16px;
+        }
+        .header {
+            background: #16181c;
+            padding: 16px;
+            border-radius: 16px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .header h1 {
+            color: #2b6bff;
+            margin-bottom: 8px;
+        }
+        .button {
+            background: #2b6bff;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 16px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 12px;
+            transition: opacity 0.2s;
+        }
+        .button:hover {
+            opacity: 0.9;
+        }
+        .button.purple {
+            background: #8e44ad;
+        }
+        .button.secondary {
+            background: #16181c;
+            border: 1px solid #2a2f35;
+        }
+        .rooms-container {
+            margin-top: 20px;
+        }
+        .room-card {
+            background: #16181c;
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            border: 1px solid #2a2f35;
+        }
+        .room-card:hover {
+            background: #1e2228;
+        }
+        .room-name {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .room-users {
+            color: #8e8e93;
+            font-size: 14px;
+        }
+        .chat-container {
+            background: #16181c;
+            border-radius: 16px;
+            padding: 16px;
+            min-height: 60vh;
+            margin-bottom: 16px;
+            overflow-y: auto;
+        }
+        .message {
+            padding: 12px;
+            background: #0a0c10;
+            border-radius: 16px;
+            max-width: 80%;
+            margin-bottom: 12px;
+        }
+        .message.own {
+            margin-left: auto;
+            background: #2b6bff;
+        }
+        .message.system {
+            background: transparent;
+            text-align: center;
+            color: #8e8e93;
+            max-width: 100%;
+        }
+        .message-header {
+            font-size: 12px;
+            color: #8e8e93;
+            margin-bottom: 4px;
+        }
+        .input-area {
+            display: flex;
+            gap: 8px;
+            background: #16181c;
+            padding: 12px;
+            border-radius: 24px;
+        }
+        .input-area input {
+            flex: 1;
+            background: #0a0c10;
+            border: none;
+            border-radius: 20px;
+            padding: 12px 16px;
+            color: white;
+        }
+        .input-area button {
+            background: #2b6bff;
+            border: none;
+            border-radius: 20px;
+            padding: 12px 24px;
+            color: white;
+            cursor: pointer;
+        }
+        .back-button {
+            background: #16181c;
+            border: 1px solid #2a2f35;
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 16px;
+            cursor: pointer;
+            text-align: center;
+        }
+        .hidden {
+            display: none;
+        }
     </style>
 </head>
 <body>
-    <div id="mainMenu">
-        <h1>🤖 Чат-форум</h1>
-        <button onclick="createRoom()" style="width:100%; margin-bottom:12px;">➕ СОЗДАТЬ КОМНАТУ</button>
-        <button onclick="randomSearch()" style="width:100%; margin-bottom:20px; background:#8e44ad;">🎲 СЛУЧАЙНЫЙ ПОИСК</button>
-        <div id="roomsList"></div>
+    <!-- ГЛАВНЫЙ ЭКРАН -->
+    <div id="mainScreen">
+        <div class="header">
+            <h1>🤖 Форум чат</h1>
+            <p>Анонимное общение</p>
+        </div>
+        
+        <button class="button" onclick="createRoom()">➕ СОЗДАТЬ КОМНАТУ</button>
+        <button class="button purple" onclick="randomSearch()">🎲 СЛУЧАЙНЫЙ ПОИСК</button>
+        
+        <div style="margin-top: 20px;">
+            <h3>📋 Доступные комнаты</h3>
+            <div id="roomsList" class="rooms-container"></div>
+        </div>
     </div>
 
-    <div id="chatRoom" class="hidden">
-        <button onclick="leaveRoom()" class="back">← НАЗАД</button>
-        <h2 id="roomTitle"></h2>
-        <div class="chat">
-            <div class="messages" id="messages"></div>
-            <div class="input-area">
-                <input type="text" id="messageInput" placeholder="Сообщение...">
-                <button onclick="sendMessage()">➤</button>
-            </div>
+    <!-- ЭКРАН ЧАТА -->
+    <div id="chatScreen" class="hidden">
+        <div class="back-button" onclick="leaveRoom()">← Назад к комнатам</div>
+        
+        <div class="header" style="margin-bottom: 16px;">
+            <h2 id="currentRoomName">Комната</h2>
+        </div>
+        
+        <div class="chat-container" id="messages"></div>
+        
+        <div class="input-area">
+            <input type="text" id="messageInput" placeholder="Сообщение...">
+            <button onclick="sendMessage()">➤</button>
         </div>
     </div>
 
     <script>
         let tg = window.Telegram.WebApp;
         tg.expand();
-        
-        let currentRoom = null;
-        let roomsList = [];
 
-        // Обработка сообщений от бота
+        let currentRoom = null;
+        let rooms = [];
+
+        // ПОЛУЧИТЬ КОМНАТЫ ПРИ ЗАГРУЗКЕ
+        function loadRooms() {
+            tg.sendData(JSON.stringify({action: "get_rooms"}));
+        }
+
+        // ОБРАБОТКА СООБЩЕНИЙ ОТ БОТА
         Telegram.WebApp.onEvent('message', function(event) {
             let data = JSON.parse(event.data);
             
-            if (data.action === 'room_created') {
-                currentRoom = data.room_id;
-                enterRoom(currentRoom);
+            if (data.action === "rooms_list") {
+                rooms = data.rooms;
+                renderRooms();
             }
             
-            if (data.action === 'room_joined') {
-                currentRoom = data.room_id;
-                enterRoom(currentRoom);
+            if (data.action === "room_created" || data.action === "room_joined" || data.action === "random_found") {
+                currentRoom = {id: data.room_id, name: data.room_name};
+                openChat();
             }
             
-            if (data.action === 'found') {
-                currentRoom = data.room_id;
-                enterRoom(currentRoom);
+            if (data.action === "new_message") {
+                addMessage(data.sender, data.text);
             }
             
-            if (data.action === 'timeout') {
-                alert('⏰ Время вышло. Попробуй еще раз.');
+            if (data.action === "searching") {
+                showSystemMessage("🔍 Ищем собеседника...");
+            }
+            
+            if (data.action === "timeout") {
+                showSystemMessage("⏰ Время вышло");
             }
         });
 
+        // ПОКАЗАТЬ КОМНАТЫ
+        function renderRooms() {
+            let html = '';
+            rooms.forEach(room => {
+                html += `
+                    <div class="room-card" onclick="joinRoom('${room.id}')">
+                        <div class="room-name">${room.name}</div>
+                        <div class="room-users">👥 ${room.users} участников</div>
+                    </div>
+                `;
+            });
+            document.getElementById('roomsList').innerHTML = html || '<p style="color:#8e8e93; text-align:center;">Пока нет комнат</p>';
+        }
+
+        // СОЗДАТЬ КОМНАТУ
         function createRoom() {
-            tg.sendData(JSON.stringify({action: 'create_room'}));
+            let name = prompt("Название комнаты:", "Моя комната");
+            if (name) {
+                tg.sendData(JSON.stringify({
+                    action: "create_room",
+                    name: name
+                }));
+            }
         }
 
+        // ВОЙТИ В КОМНАТУ
+        function joinRoom(roomId) {
+            tg.sendData(JSON.stringify({
+                action: "join_room",
+                room_id: roomId
+            }));
+        }
+
+        // СЛУЧАЙНЫЙ ПОИСК
         function randomSearch() {
-            tg.sendData(JSON.stringify({action: 'random_search'}));
+            tg.sendData(JSON.stringify({action: "random_search"}));
         }
 
-        function enterRoom(roomId) {
-            currentRoom = roomId;
-            document.getElementById('mainMenu').classList.add('hidden');
-            document.getElementById('chatRoom').classList.remove('hidden');
-            document.getElementById('roomTitle').textContent = 'Комната ' + roomId;
+        // ОТКРЫТЬ ЧАТ
+        function openChat() {
+            document.getElementById('mainScreen').classList.add('hidden');
+            document.getElementById('chatScreen').classList.remove('hidden');
+            document.getElementById('currentRoomName').textContent = currentRoom.name;
             document.getElementById('messages').innerHTML = '';
+            showSystemMessage('✅ Ты вошел в комнату');
         }
 
+        // ОТПРАВИТЬ СООБЩЕНИЕ
         function sendMessage() {
             let input = document.getElementById('messageInput');
             let text = input.value.trim();
             if (!text || !currentRoom) return;
             
+            // Показываем свое сообщение
             let msgDiv = document.createElement('div');
             msgDiv.className = 'message own';
             msgDiv.textContent = text;
             document.getElementById('messages').appendChild(msgDiv);
             
+            // Отправляем боту
             tg.sendData(JSON.stringify({
-                action: 'send_message',
-                room_id: currentRoom,
+                action: "send_message",
+                room_id: currentRoom.id,
                 text: text
             }));
             
             input.value = '';
         }
 
+        // ДОБАВИТЬ СООБЩЕНИЕ
+        function addMessage(sender, text) {
+            let msgDiv = document.createElement('div');
+            msgDiv.className = 'message';
+            
+            let header = document.createElement('div');
+            header.className = 'message-header';
+            header.textContent = sender;
+            msgDiv.appendChild(header);
+            
+            let content = document.createElement('div');
+            content.textContent = text;
+            msgDiv.appendChild(content);
+            
+            document.getElementById('messages').appendChild(msgDiv);
+        }
+
+        // СИСТЕМНОЕ СООБЩЕНИЕ
+        function showSystemMessage(text) {
+            let msgDiv = document.createElement('div');
+            msgDiv.className = 'message system';
+            msgDiv.textContent = text;
+            document.getElementById('messages').appendChild(msgDiv);
+        }
+
+        // ВЫЙТИ ИЗ КОМНАТЫ
         function leaveRoom() {
             if (currentRoom) {
                 tg.sendData(JSON.stringify({
-                    action: 'leave_room',
-                    room_id: currentRoom
+                    action: "leave_room",
+                    room_id: currentRoom.id
                 }));
                 currentRoom = null;
             }
-            document.getElementById('mainMenu').classList.remove('hidden');
-            document.getElementById('chatRoom').classList.add('hidden');
+            document.getElementById('mainScreen').classList.remove('hidden');
+            document.getElementById('chatScreen').classList.add('hidden');
+            loadRooms();
         }
+
+        // ОТПРАВКА ПО ENTER
+        document.getElementById('messageInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') sendMessage();
+        });
+
+        // ЗАГРУЗКА
+        tg.ready();
+        loadRooms();
+        setInterval(loadRooms, 5000); // Обновляем список комнат каждые 5 секунд
     </script>
 </body>
 </html>
