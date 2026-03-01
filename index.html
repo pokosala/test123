@@ -223,19 +223,6 @@
             color: var(--tg-theme-button-color, #2b6bff);
         }
 
-        .room-tags {
-            display: flex;
-            gap: 4px;
-        }
-
-        .tag {
-            background: var(--tg-theme-bg-color, #0a0c10);
-            padding: 2px 6px;
-            border-radius: 8px;
-            font-size: 10px;
-            color: var(--tg-theme-hint-color, #8e8e93);
-        }
-
         .full-badge {
             background: #e74c3c;
             color: white;
@@ -624,10 +611,8 @@
         let selectedCategory = null;
         let selectedLimit = 10;
         let currentRoom = null;
-        let messages = [];
         let rooms = [];
-        
-        const categories = [
+        let categories = [
             { id: 'games', name: 'Игры', icon: '🎮', count: 0 },
             { id: 'it', name: 'IT', icon: '💻', count: 0 },
             { id: 'movies', name: 'Кино', icon: '🎬', count: 0 },
@@ -638,21 +623,47 @@
             { id: 'other', name: 'Другое', icon: '🔮', count: 0 }
         ];
 
+        // Загрузка реальных комнат из бота
         function loadRooms() {
+            showLoading(true);
             tg.sendData(JSON.stringify({action: 'get_rooms'}));
-            
-            setTimeout(() => {
-                fetchRoomsFromBot();
-            }, 500);
         }
 
+        // Обработка данных от бота
+        window.Telegram.WebApp.onEvent('sendData', function(data) {
+            try {
+                const response = JSON.parse(data);
+                if (response.rooms) {
+                    rooms = response.rooms;
+                    renderAll();
+                }
+            } catch (e) {
+                console.log('Waiting for bot data...');
+            }
+        });
+
+        // Эмуляция получения данных (пока нет реального соединения)
         function fetchRoomsFromBot() {
-            console.log('Загрузка комнат...');
+            // Здесь будет реальный запрос к боту
+            // Пока показываем заглушку с сообщением
+            const popularDiv = document.getElementById('popularRooms');
+            popularDiv.innerHTML = '<div style="text-align: center; padding: 20px;">⏳ Загрузка комнат...<br><small>Создай первую комнату!</small></div>';
+        }
+
+        function renderAll() {
+            renderCategories();
+            renderRooms();
+            updateStats();
+            showLoading(false);
+        }
+
+        function showLoading(show) {
+            // Можно добавить индикатор загрузки
         }
 
         function updateStats() {
             document.getElementById('totalRooms').textContent = rooms.length;
-            const totalUsers = rooms.reduce((sum, r) => sum + r.users, 0);
+            const totalUsers = rooms.reduce((sum, r) => sum + (r.users || 0), 0);
             document.getElementById('totalUsers').textContent = totalUsers;
             document.getElementById('onlineNow').textContent = totalUsers;
         }
@@ -683,21 +694,24 @@
             const popular = document.getElementById('popularRooms');
             if (popular) {
                 popular.innerHTML = '';
-                rooms.slice(0, 3).forEach(room => {
-                    popular.appendChild(createRoomCard(room));
-                });
+                if (rooms.length === 0) {
+                    popular.innerHTML = '<div style="text-align: center; padding: 20px; color: var(--tg-theme-hint-color);">🚀 Пока нет комнат<br><small>Создай первую!</small></div>';
+                } else {
+                    rooms.slice(0, 3).forEach(room => {
+                        popular.appendChild(createRoomCard(room));
+                    });
+                }
             }
 
             const newRooms = document.getElementById('newRooms');
             if (newRooms) {
                 newRooms.innerHTML = '';
-                rooms.slice(-2).forEach(room => {
-                    newRooms.appendChild(createRoomCard(room));
-                });
+                if (rooms.length > 3) {
+                    rooms.slice(-2).forEach(room => {
+                        newRooms.appendChild(createRoomCard(room));
+                    });
+                }
             }
-            
-            updateStats();
-            renderCategories();
         }
 
         function createRoomCard(room) {
@@ -714,7 +728,7 @@
                 </div>
                 <div class="room-description">${room.description || ''}</div>
                 <div class="room-footer">
-                    <span class="room-users">👥 ${room.users}/${room.maxUsers === 999 ? '∞' : room.maxUsers}</span>
+                    <span class="room-users">👥 ${room.users || 0}/${room.maxUsers === 999 ? '∞' : room.maxUsers}</span>
                     ${isFull ? '<span class="full-badge">Полная</span>' : ''}
                 </div>
             `;
@@ -732,7 +746,7 @@
             list.innerHTML = '';
             
             if (categoryRooms.length === 0) {
-                list.innerHTML = '<div style="text-align: center; padding: 20px; color: var(--tg-theme-hint-color);">Пока нет комнат в этой категории</div>';
+                list.innerHTML = '<div style="text-align: center; padding: 20px; color: var(--tg-theme-hint-color);">Пока нет комнат в этой категории<br><small>Создай первую!</small></div>';
             } else {
                 categoryRooms.forEach(room => {
                     list.appendChild(createRoomCard(room));
@@ -784,6 +798,7 @@
             
             setTimeout(() => {
                 showSection('main');
+                loadRooms(); // Перезагружаем комнаты
             }, 1000);
         }
 
@@ -807,33 +822,12 @@
             
             currentRoom = room;
             document.getElementById('chatRoomName').textContent = room.name;
-            document.getElementById('chatRoomUsers').textContent = `👥 ${room.users}/${room.maxUsers === 999 ? '∞' : room.maxUsers}`;
+            document.getElementById('chatRoomUsers').textContent = `👥 ${room.users || 0}/${room.maxUsers === 999 ? '∞' : room.maxUsers}`;
             
             document.getElementById('messages').innerHTML = '';
             addSystemMessage(`Ты вошел в комнату "${room.name}"`);
             
             showSection('chat');
-        }
-
-        function addMessage(sender, text, isOwn = false) {
-            const container = document.getElementById('messages');
-            const msgDiv = document.createElement('div');
-            msgDiv.className = `message ${isOwn ? 'own' : ''}`;
-            
-            if (!isOwn && sender !== 'system') {
-                const header = document.createElement('div');
-                header.className = 'message-header';
-                header.textContent = sender;
-                msgDiv.appendChild(header);
-            }
-            
-            const content = document.createElement('div');
-            content.className = 'message-text';
-            content.textContent = text;
-            msgDiv.appendChild(content);
-            
-            container.appendChild(msgDiv);
-            container.scrollTop = container.scrollHeight;
         }
 
         function addSystemMessage(text) {
@@ -859,6 +853,27 @@
             }));
             
             input.value = '';
+        }
+
+        function addMessage(sender, text, isOwn = false) {
+            const container = document.getElementById('messages');
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `message ${isOwn ? 'own' : ''}`;
+            
+            if (!isOwn && sender !== 'system') {
+                const header = document.createElement('div');
+                header.className = 'message-header';
+                header.textContent = sender;
+                msgDiv.appendChild(header);
+            }
+            
+            const content = document.createElement('div');
+            content.className = 'message-text';
+            content.textContent = text;
+            msgDiv.appendChild(content);
+            
+            container.appendChild(msgDiv);
+            container.scrollTop = container.scrollHeight;
         }
 
         function askGPT() {
@@ -898,6 +913,7 @@
                     document.getElementById('messages').innerHTML = '';
                     currentRoom = null;
                     showSection('main');
+                    loadRooms();
                 }, 1000);
             } else {
                 showSection('main');
@@ -912,6 +928,11 @@
                 message: 'Ищем случайного собеседника...',
                 buttons: [{type: 'close'}]
             });
+            
+            setTimeout(() => {
+                showSection('chat');
+                addSystemMessage('🔍 Идет поиск собеседника...');
+            }, 1000);
         }
 
         function createPrivateRoom() {
@@ -991,41 +1012,12 @@
             }
         });
 
+        // Инициализация
         tg.ready();
         loadRooms();
         
-        setTimeout(() => {
-            rooms = [
-                {
-                    id: 'room1',
-                    name: '🎮 Игровой клуб',
-                    description: 'Обсуждаем игры и делимся впечатлениями',
-                    category: 'games',
-                    categoryName: '🎮 Игры',
-                    users: 3,
-                    maxUsers: 10
-                },
-                {
-                    id: 'room2',
-                    name: '💻 Python разработка',
-                    description: 'Помощь с кодом, обсуждение библиотек',
-                    category: 'it',
-                    categoryName: '💻 IT',
-                    users: 5,
-                    maxUsers: 20
-                },
-                {
-                    id: 'room3',
-                    name: '⚽ Футбольный клуб',
-                    description: 'Обсуждаем матчи и трансферы',
-                    category: 'sport',
-                    categoryName: '⚽ Спорт',
-                    users: 2,
-                    maxUsers: 5
-                }
-            ];
-            renderRooms();
-        }, 1000);
+        // Пока нет реальных данных, показываем подсказку
+        fetchRoomsFromBot();
     </script>
 </body>
 </html>
